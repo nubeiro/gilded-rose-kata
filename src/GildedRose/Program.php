@@ -47,6 +47,14 @@ namespace GildedRose;
  */
 class Program
 {
+    const MAX_QUALITY              = 50;
+    const MIN_QUALITY              = 0;
+    const MIN_SELL_IN              = 0;
+    const BACKSTAGE_START_TRIPLING = 6;
+    const BACKSTAGE_START_DOUBLING = 11;
+    /**
+     * @var array $items DO NOT TOUCH
+     */
     private $items = array();
 
     public static function Main()
@@ -54,16 +62,16 @@ class Program
         echo "HELLO\n";
 
         $app = new Program(array(
-              new Item(array( 'name' => "+5 Dexterity Vest",'sellIn' => 10,'quality' => 20)),
-              new Item(array( 'name' => "Aged Brie",'sellIn' => 2,'quality' => 0)),
-              new Item(array( 'name' => "Elixir of the Mongoose",'sellIn' => 5,'quality' => 7)),
-              new Item(array( 'name' => "Sulfuras, Hand of Ragnaros",'sellIn' => 0,'quality' => 80)),
-              new Item(array(
+            new Item(array( 'name' => "+5 Dexterity Vest",'sellIn' => 10,'quality' => 20)),
+            new Item(array( 'name' => "Aged Brie",'sellIn' => 2,'quality' => 0)),
+            new Item(array( 'name' => "Elixir of the Mongoose",'sellIn' => 5,'quality' => 7)),
+            new Item(array('name' => "Sulfuras, Hand of Ragnaros", 'sellIn' => 0, 'quality' => 80)),
+            new Item(array(
                      'name' => "Backstage passes to a TAFKAL80ETC concert",
                      'sellIn' => 15,
                      'quality' => 20
               )),
-              new Item(array('name' => "Conjured Mana Cake",'sellIn' => 3,'quality' => 6)),
+            new Item(array('name' => "Conjured Mana Cake",'sellIn' => 3,'quality' => 6)),
         ));
 
         $app->UpdateQuality();
@@ -83,24 +91,24 @@ class Program
     {
         for ($i = 0; $i < count($this->items); $i++) {
             if ($this->items[$i]->name != "Aged Brie" && $this->items[$i]->name != "Backstage passes to a TAFKAL80ETC concert") {
-                if ($this->items[$i]->quality > 0) {
+                if ($this->items[$i]->quality > self::MIN_QUALITY) {
                     if ($this->items[$i]->name != "Sulfuras, Hand of Ragnaros") {
-                        $this->items[$i]->quality = $this->items[$i]->quality - 1;
+                        $this->items[$i] = $this->decreaseQuality($this->items[$i]);
                     }
                 }
             } else {
-                if ($this->items[$i]->quality < 50) {
+                if ($this->items[$i]->quality < self::MAX_QUALITY) {
                     $this->items[$i]->quality = $this->items[$i]->quality + 1;
 
                     if ($this->items[$i]->name == "Backstage passes to a TAFKAL80ETC concert") {
-                        if ($this->items[$i]->sellIn < 11) {
-                            if ($this->items[$i]->quality < 50) {
+                        if ($this->items[$i]->sellIn < self::BACKSTAGE_START_DOUBLING) {
+                            if ($this->items[$i]->quality < self::MAX_QUALITY) {
                                 $this->items[$i]->quality = $this->items[$i]->quality + 1;
                             }
                         }
 
-                        if ($this->items[$i]->sellIn < 6) {
-                            if ($this->items[$i]->quality < 50) {
+                        if ($this->items[$i]->sellIn < self::BACKSTAGE_START_TRIPLING) {
+                            if ($this->items[$i]->quality < self::MAX_QUALITY) {
                                 $this->items[$i]->quality = $this->items[$i]->quality + 1;
                             }
                         }
@@ -112,23 +120,35 @@ class Program
                 $this->items[$i]->sellIn = $this->items[$i]->sellIn - 1;
             }
 
-            if ($this->items[$i]->sellIn < 0) {
+            if ($this->items[$i]->sellIn < self::MIN_SELL_IN) {
                 if ($this->items[$i]->name != "Aged Brie") {
                     if ($this->items[$i]->name != "Backstage passes to a TAFKAL80ETC concert") {
-                        if ($this->items[$i]->quality > 0) {
+                        if ($this->items[$i]->quality > self::MIN_QUALITY) {
                             if ($this->items[$i]->name != "Sulfuras, Hand of Ragnaros") {
-                                $this->items[$i]->quality = $this->items[$i]->quality - 1;
+                                $this->items[$i] = $this->decreaseQuality($this->items[$i]);
                             }
                         }
                     } else {
                         $this->items[$i]->quality = $this->items[$i]->quality - $this->items[$i]->quality;
                     }
                 } else {
-                    if ($this->items[$i]->quality < 50) {
+                    if ($this->items[$i]->quality < self::MAX_QUALITY) {
                         $this->items[$i]->quality = $this->items[$i]->quality + 1;
                     }
                 }
             }
         }
+    }
+
+    /**
+     * @param $i
+     *
+     * @return int
+     */
+    protected function decreaseQuality($item): Item
+    {
+         $item->quality = $item->quality - 1;
+
+         return $item;
     }
 }
